@@ -1,87 +1,135 @@
-import React from "react";
-// import { Link } from "react-router-dom";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { FaUser } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import Notes from "./Notes";
+import Schedule from "./Schedule";
+import Journal from "./Journal";
+import axios from "axios";
 
-const Dash = () => {
+
+const Dash = ({children}) => {
+  const [loggedIn, setLoggedIn] = useState(true); // Set to true if the user is logged in
+  const [userName, setUserName] = useState("User"); // Replace "John Doe" with the user's name after login
+  const [dropdownVisible, setDropdownVisible] = useState(false); // State to control the visibility of the dropdown
+  const navigate = useNavigate();
+
+  const dropdownRef = useRef(null);
+
+   const handleLogout = () => {
+    // Menghapus token otentikasi dari local storage atau cookies
+    localStorage.removeItem('token'); // Jika token disimpan di local storage
+    // document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;' // Jika token disimpan dalam cookies
+    console.log('Logout berhasil.');
+    // Redirect ke halaman login setelah logout
+    navigate('/login');
+  };
+
+  const toggleDropdown = () => {
+    setDropdownVisible(!dropdownVisible); // Toggle the dropdown visibility
+  };
+
+  // Close the dropdown when clicking outside of it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownVisible(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
   return (
+    
     <div className="overflow-x-hidden">
-      <nav class="bg-white border-gray-200 dark:bg-[#5296DE]">
-        <div class="max-w-screen-xl flex flex-wrap items-center justify-between ml-12 p-4">
-          <a class="flex items-center">
+      <nav className="bg-white border-gray-200 dark:bg-[#5296DE]">
+        <div className="md:max-w-screen-xl xl:max-w-screen-2xl flex flex-wrap items-center justify-between mx-auto p-4">
+          <Link to="/" className="flex items-center">
             <img
               src="https://flowbite.com/docs/images/logo.svg"
-              class="h-8 mr-3"
+              className="h-8 mr-3"
               alt="Flowbite Logo"
             />
-            <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
+            <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
               NOTES
             </span>
-          </a>
-        </div>
-      </nav>
+          </Link>
 
-      <nav class="bg-white border-gray-200 dark:bg-[#5296DE]">
-        <div class="max-w-screen-xl flex flex-wrap items-center justify-between ml-14 p-4">
-          <button
-            data-collapse-toggle="navbar-default"
-            type="button"
-            class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-            aria-controls="navbar-default"
-            aria-expanded="false"
-          >
-            <span class="sr-only">Open main menu</span>
-            <svg
-              class="w-6 h-6"
-              aria-hidden="true"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                clip-rule="evenodd"
-              ></path>
-            </svg>
-          </button>
-          <div class="hidden w-full md:block md:w-auto" id="navbar-default">
-            {/* <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700"> */}
-            <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:border-0  ">
-              <Link to="/">
-                <li>
-                  <a
-                    href="#"
-                    class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:underline md:p-0 dark:text-white md:dark:hover:underline  dark:hover:text-white md:dark:hover:bg-transparent"
-                    aria-current="page"
+          {loggedIn && (
+            <div className="relative" ref={dropdownRef}>
+              <div className="flex items-center">
+                <span className="text-white mr-2">Hello, {userName}</span>
+                <FaUser
+                  className="text-gray-600 cursor-pointer"
+                  onClick={toggleDropdown}
+                  color="white"
+                />
+              </div>
+              {dropdownVisible && (
+                <div className="absolute mt-2 right-0 w-24 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1">
+                  <button
+                    className="block w-full text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={handleLogout}
                   >
-                    Notes
-                  </a>
-                </li>
-              </Link>
-              <Link to="/schedule">
-                <li>
-                  <a
+                    Logout
+                  </button>
+                  {/* Add any additional dropdown items here */}
+                  {/* For example: */}
+                  {/* <a
                     href="#"
-                    class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:underline md:p-0 dark:text-white md:dark:hover:underline  dark:hover:text-white md:dark:hover:bg-transparent"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    Schedule
-                  </a>
-                </li>
-              </Link>
-              <Link to="/journal">
-                <li>
-                  <a
-                    href="#"
-                    class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:underline md:p-0 dark:text-white md:dark:hover:underline  dark:hover:text-white md:dark:hover:bg-transparent"
-                  >
-                    Journal
-                  </a>
-                </li>
-              </Link>
-            </ul>
-          </div>
+                    Account Settings
+                  </a> */}
+                </div>
+              )}
+            </div>
+          )}
+          
         </div>
-      </nav>
+        </nav>
+        <nav  class="bg-white border-gray-200 dark:bg-[#5296DE]">
+      <div class="md:max-w-screen-xl xl:max-w-screen-2xl flex flex-wrap items-center justify-between mx-auto p-4">
+       <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:border-0">
+          <li>
+            <Link to="/">
+              <a
+                href="#"
+                className="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:underline md:p-0 dark:text-white md:dark:hover:underline  dark:hover:text-white md:dark:hover:bg-transparent"
+                aria-current="page"
+              >
+                Notes
+              </a>
+            </Link>
+          </li>
+          <li>
+            <Link to="/schedule">
+              <a
+                href="#"
+                className="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:underline md:p-0 dark:text-white md:dark:hover:underline  dark:hover:text-white md:dark:hover:bg-transparent"
+              >
+                Schedule
+              </a>
+            </Link>
+          </li>
+          <li>
+            <Link to="/journal">
+              <a
+                href="#"
+                className="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:underline md:p-0 dark:text-white md:dark:hover:underline  dark:hover:text-white md:dark:hover:bg-transparent"
+              >
+                Journal
+              </a>
+            </Link>
+          </li>
+        </ul>
+       </div>
+        </nav>
+      
     </div>
   );
 };
